@@ -10,7 +10,7 @@ on:
     # We also explicitly ignore common non-content directories.
     paths:
       - '**/*.SV6'
-      - '**/*.SV4'
+      - '**/*.SC4'
       - '**/*.EXE'
       - '**/*.MSI'
       - '!**/.github/**'
