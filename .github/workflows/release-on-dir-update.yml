@@ -6,10 +6,13 @@ name: Create Release on Directory Update
 on:
   push:
     # The 'paths' filter is generalized. It will trigger the workflow
-    # whenever any .SV6 file is changed in any directory at the root level.
+    # whenever any .SV6/etc file is changed in any directory at the root level.
     # We also explicitly ignore common non-content directories.
     paths:
       - '**/*.SV6'
+      - '**/*.SV4'
+      - '**/*.EXE'
+      - '**/*.MSI'
       - '!**/.github/**'
       - '!**/.gitignore'
 
