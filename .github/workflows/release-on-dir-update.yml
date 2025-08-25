@@ -1,0 +1,63 @@
+# This workflow's name is "Create Release on Directory Update"
+# It will work for any changes in any top-level directory.
+name: Create Release on Directory Update
+
+# The 'on' keyword specifies when this workflow will be triggered.
+on:
+  push:
+    # The 'paths' filter is generalized. It will trigger the workflow
+    # whenever any .SV6 file is changed in any directory at the root level.
+    # We also explicitly ignore common non-content directories.
+    paths:
+      - '**/*.SV6'
+      - '!**/.github/**'
+      - '!**/.gitignore'
+
+# A workflow is composed of one or more jobs.
+jobs:
+  # This job is named 'create_release'.
+  create_release:
+    # The job will run on the latest version of an Ubuntu runner.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release and upload assets.
+
+    # These are the steps that will be executed in order within the job.
+    steps:
+      # Step 1: Check out the repository's code.
+      # This is a mandatory first step for almost all workflows.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Dynamically create a zip file for each top-level directory.
+      # The 'run' command executes a shell script that iterates through
+      # all directories at the root of the repository.
+      - name: Create zip files for all top-level directories
+        run: |
+          # The 'for' loop finds all directories and stores their names in the 'dir' variable.
+          # The "*/" wildcard ensures we only select directories.
+          for dir in */; do
+            # Use shell parameter expansion to remove the trailing slash,
+            # so we can name the zip file correctly (e.g., 'parks.zip' instead of 'parks/.zip').
+            dir_name=${dir%?}
+            echo "Zipping directory: $dir_name..."
+            # The 'zip -r' command creates a zip file of the entire directory.
+            zip -r "$dir_name.zip" "$dir"
+          done
+
+      # Step 3: Create a new GitHub Release and upload all the zip files.
+      # The softprops/action-gh-release action is used here.
+      - name: Create release and upload all zip files
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          # `tag_name` is the unique tag for the release. We use the GitHub run number.
+          tag_name: v${{ github.run_number }}
+          # `name` is the human-readable title of the release.
+          name: New Parks Maps Release
+          # `files` now uses a wildcard to upload every file that ends with '.zip'.
+          # This makes the process dynamic and handles all created zip files.
+          files: '*.zip'
+          # `generate_release_notes` automatically populates the release notes
+          # based on the commit messages that triggered the workflow.
+          generate_release_notes: true
